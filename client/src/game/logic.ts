@@ -54,9 +54,11 @@ function dealValue(state: RngState): { state: RngState; value: NumberValue } {
   return { state: r.state, value };
 }
 
-const TURNS: Turn[] = ["S", "L", "R"];
+// Dealt arrows are always a turn: going straight is excluded (dull), and the 180°
+// reversal is impossible by construction (L/R never reverse the heading).
+const TURNS: Turn[] = ["L", "R"];
 
-/** Deal a relative arrow direction, uniform over {straight, left, right}. */
+/** Deal a relative arrow direction, uniform over {left, right}. */
 function dealTurn(state: RngState): { state: RngState; turn: Turn } {
   const r = rngInt(state, TURNS.length);
   return { state: r.state, turn: TURNS[r.value] };

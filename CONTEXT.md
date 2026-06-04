@@ -37,7 +37,7 @@ Filter profile (honest):
 - **Token:** starts at the **center** cell, score 0, with a **fixed initial heading (North)**.
 - **Trail:** every cell the token enters becomes **used** (blocked) forever. The token may **never enter a used cell** — doing so (or being unable to make any legal move) ends the game. This self-collision is the **only** loss condition (the torus removes wall deaths).
 - **Numbers (pickups):** **5** are visible at any time, on free (unused, unoccupied) cells. Collecting one (the token enters its cell) immediately **spawns a new one** on a random free cell. Values follow a weighted distribution preserving the original 20:10:5 ratio → **P(1)=4/7, P(2)=2/7, P(3)=1/7** (v1, tunable).
-- **Arrows (the dealt resource):** each turn the RNG deals a **turn-direction** for an arrow. Allowed directions = the current heading's **straight, left, or right** — the **180° reversal is forbidden**. The player places this arrow on a free cell ahead of the token (see Turn structure).
+- **Arrows (the dealt resource):** each turn the RNG deals a **turn-direction** for an arrow. Allowed directions = the current heading's **left or right** — both the **180° reversal** and **going straight** are excluded, so every arrow forces a real turn. The player places this arrow on a free cell ahead of the token (see Turn structure).
 - **Preview:** the player always sees **2 arrows** — the one to place **this** turn and the one coming **next** turn — to plan two segments ahead.
 
 ## 4. Turn structure
@@ -69,7 +69,7 @@ There is **no win state**: endless survival until self-collision.
 | Grid | 15×15 torus | smaller = traps you faster |
 | Visible numbers | 5 | fewer = scarcer targets |
 | Value distribution | 4:2:1 → P(1,2,3)=4/7,2/7,1/7 | richer = higher ceiling |
-| Arrow directions dealt | {straight, left, right} (no 180°) | excluding "straight" too would force constant turns = harder |
+| Arrow directions dealt | {left, right} (no 180°, no straight) | every move forces a turn; re-adding "straight" would loosen it = easier |
 | Preview | 2 arrows (current + next) | longer preview = easier but **leaks future to the bot** — keep short |
 | Step cost in score | none (score = collected values only) | re-add a per-cell cost to punish wandering |
 
@@ -77,7 +77,7 @@ There is **no win state**: endless survival until self-collision.
 
 ### Decided (v1)
 - **Torus / wrap-around** (no walls); self-collision is the only loss.
-- **No 180° reversal** in dealt directions (prevents instant unavoidable death → keeps loss self-inflicted).
+- **Dealt directions are `{left, right}` only** — no 180° reversal (prevents instant unavoidable death → keeps loss self-inflicted) and no "straight" (a forced-straight arrow is a dull non-choice).
 - **2-move preview** (current + next).
 - **Slide-until-arrow** movement: the token advances along its heading until the placed arrow, then turns.
 - **Numbers respawn** indefinitely (no fixed pool); self-collision, not number exhaustion, ends the game.
@@ -85,9 +85,8 @@ There is **no win state**: endless survival until self-collision.
 - **Initial heading is fixed to North** (no start-of-run heading choice).
 
 ### Open (confirm)
-1. **Dealt direction set:** assumed `{straight, left, right}`. Alternative: only `{left, right}` (a turn is mandatory every move → tighter, harder). Confirm.
-2. **Value distribution** exact weights (4:2:1 assumed) and whether it should drift over a run.
-3. **Spawn rule:** new numbers appear only on free (unused, unoccupied) cells, uniformly. Confirm; consider avoiding spawning right in the token's immediate path.
+1. **Value distribution** exact weights (4:2:1 assumed) and whether it should drift over a run.
+2. **Spawn rule:** new numbers appear only on free (unused, unoccupied) cells, uniformly. Confirm; consider avoiding spawning right in the token's immediate path.
 
 ## 8. Tech direction (proposed — confirm)
 
