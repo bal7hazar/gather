@@ -1,14 +1,5 @@
 import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
-import {
-  type Dir,
-  type GameState,
-  type Turn,
-  clearRun,
-  createGame,
-  idx,
-  placeArrow,
-  setHeading,
-} from "./game";
+import { type GameState, type Turn, clearRun, createGame, idx, placeArrow } from "./game";
 import { type MoveAnim } from "./anim";
 import { Board } from "./components/Board";
 import { dirGlyph, previewGlyphs, turnLabel } from "./ui";
@@ -32,11 +23,9 @@ export function App() {
     setState(createGame(randomSeed()));
   }, []);
 
-  const choose = useCallback((dir: Dir) => setState((s) => setHeading(s, dir)), []);
-
   const place = useCallback(
     (distance: number) => {
-      if (anim || state.status !== "playing" || state.heading == null) return;
+      if (anim || state.status !== "playing") return;
       const run = clearRun(state);
       if (distance < 1 || distance > run.length) return;
 
@@ -47,7 +36,7 @@ export function App() {
         const i = idx(n.x, n.y);
         if (path.some((c) => c.index === i)) collected.set(i, n.value);
       }
-      const headingAfter = toState.heading as Dir;
+      const headingAfter = toState.heading;
       const last = path[path.length - 1];
 
       setAnim({
@@ -99,12 +88,11 @@ export function App() {
       <section className="stage">
         <div className="board-wrap">
           <Board state={state} anim={anim} onPlace={place} />
-          {state.status === "choosing" && <HeadingChooser onChoose={choose} />}
           {state.status === "over" && !anim && <GameOver state={state} onNewGame={newGame} />}
         </div>
 
         <aside className="side">
-          {state.heading != null && <Preview state={state} turnIndex={turnIndex} />}
+          <Preview state={state} turnIndex={turnIndex} />
           <Rules />
         </aside>
       </section>
@@ -136,30 +124,6 @@ function Stat({ label, value, primary }: { label: string; value: number; primary
   );
 }
 
-function HeadingChooser({ onChoose }: { onChoose: (dir: Dir) => void }) {
-  const dirs: { dir: Dir; pos: string }[] = [
-    { dir: 0, pos: "n" },
-    { dir: 1, pos: "e" },
-    { dir: 2, pos: "s" },
-    { dir: 3, pos: "w" },
-  ];
-  return (
-    <div className="overlay">
-      <div className="overlay-card">
-        <h2>Pick a starting heading</h2>
-        <div className="dpad">
-          {dirs.map(({ dir, pos }) => (
-            <button key={dir} type="button" className={`dpad-btn ${pos}`} onClick={() => onChoose(dir)}>
-              {dirGlyph(dir)}
-            </button>
-          ))}
-          <span className="dpad-center">•</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function GameOver({ state, onNewGame }: { state: GameState; onNewGame: () => void }) {
   return (
     <div className="overlay">
@@ -186,8 +150,7 @@ interface ArrowItem {
 }
 
 function Preview({ state, turnIndex }: { state: GameState; turnIndex: number }) {
-  const heading = state.heading as Dir;
-  const { current, next } = previewGlyphs(heading, state.arrows);
+  const { current, next } = previewGlyphs(state.heading, state.arrows);
   const items: ArrowItem[] = [
     { id: turnIndex, glyph: current, turn: state.arrows[0] },
     { id: turnIndex + 1, glyph: next, turn: state.arrows[1] },

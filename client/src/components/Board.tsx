@@ -84,9 +84,7 @@ function Overlay({ state, anim, width }: { state: GameState; anim: MoveAnim | nu
   const hop = anim && anim.stepIndex > 0 ? isWrapHop(cellAtStep(anim, anim.stepIndex - 1), tokenCell) : false;
   const tokenGlyph = anim
     ? dirGlyph(anim.phase === "sliding" ? anim.headingBefore : anim.headingAfter)
-    : state.heading != null
-      ? dirGlyph(state.heading)
-      : "•";
+    : dirGlyph(state.heading);
 
   // Cells already entered this slide (token covers the last one).
   const traveled = anim ? anim.path.slice(0, anim.stepIndex) : [];
