@@ -223,7 +223,7 @@ function Rules() {
       <ul>
         <li>The grid wraps: leaving one edge re-enters the opposite side.</li>
         <li>Every cell you enter becomes trail you can never re-cross.</li>
-        <li>Each turn you&apos;re dealt a forced turn — you choose how far ahead to place it.</li>
+        <li>Each turn you&apos;re dealt a forced left/right turn — you choose how far ahead to place it.</li>
         <li>Each number adds its value to your score — gather as many as you can.</li>
         <li>Dashed cells are reachable only by wrapping across an edge.</li>
         <li>You lose when you trap yourself with no free cell ahead.</li>

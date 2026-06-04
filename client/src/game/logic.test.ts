@@ -109,6 +109,19 @@ describe("placeArrow", () => {
     expect(placeArrow(g, clearRun(g).length + 1)).toBe(g);
   });
 
+  it("only ever deals left/right turns (never straight)", () => {
+    let g = createGame(7);
+    const seen = new Set<string>(g.arrows);
+    for (let t = 0; t < 60 && g.status === "playing"; t++) {
+      const run = clearRun(g);
+      if (run.length === 0) break;
+      g = placeArrow(g, run[0].distance);
+      for (const a of g.arrows) seen.add(a);
+    }
+    expect(seen.size).toBeGreaterThan(0);
+    expect([...seen].every((a) => a === "L" || a === "R")).toBe(true);
+  });
+
   it("keeps exactly 5 numbers visible across collections", () => {
     let g = createGame(13, 1);
     for (let t = 0; t < 30 && g.status === "playing"; t++) {
