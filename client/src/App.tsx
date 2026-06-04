@@ -1,23 +1,90 @@
-import { useCallback, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
 import {
   type Dir,
   type GameState,
+  type Turn,
+  clearRun,
   createGame,
+  idx,
   placeArrow,
   setHeading,
 } from "./game";
+import { type MoveAnim } from "./anim";
 import { Board } from "./components/Board";
 import { dirGlyph, previewGlyphs, turnLabel } from "./ui";
 import "./App.css";
 
 const randomSeed = () => Math.floor(Math.random() * 1_000_000_000);
 
+// Animation timings (ms).
+const PLACE_PAUSE = 170; // beat so the placed arrow registers before the token moves
+const CONSUME_MS = 200; // arrow-consume + token turn before committing
+
 export function App() {
   const [state, setState] = useState<GameState>(() => createGame(randomSeed()));
+  const [anim, setAnim] = useState<MoveAnim | null>(null);
+  // Increments on each committed move — stable identity for the preview queue.
+  const [turnIndex, setTurnIndex] = useState(0);
 
-  const newGame = useCallback(() => setState(createGame(randomSeed())), []);
+  const newGame = useCallback(() => {
+    setAnim(null);
+    setTurnIndex(0);
+    setState(createGame(randomSeed()));
+  }, []);
+
   const choose = useCallback((dir: Dir) => setState((s) => setHeading(s, dir)), []);
-  const place = useCallback((distance: number) => setState((s) => placeArrow(s, distance)), []);
+
+  const place = useCallback(
+    (distance: number) => {
+      if (anim || state.status !== "playing" || state.heading == null) return;
+      const run = clearRun(state);
+      if (distance < 1 || distance > run.length) return;
+
+      const path = run.slice(0, distance);
+      const toState = placeArrow(state, distance);
+      const collected = new Map<number, number>();
+      for (const n of state.numbers) {
+        const i = idx(n.x, n.y);
+        if (path.some((c) => c.index === i)) collected.set(i, n.value);
+      }
+      const headingAfter = toState.heading as Dir;
+      const last = path[path.length - 1];
+
+      setAnim({
+        path,
+        startCell: { ...state.token },
+        arrowCell: { x: last.x, y: last.y },
+        arrowGlyph: dirGlyph(headingAfter),
+        headingBefore: state.heading,
+        headingAfter,
+        collected,
+        toState,
+        stepDur: Math.max(45, Math.min(100, Math.round(700 / path.length))),
+        stepIndex: 0,
+        phase: "sliding",
+      });
+    },
+    [anim, state],
+  );
+
+  // Drives the animation: slide cell by cell, consume the arrow, then commit.
+  useEffect(() => {
+    if (!anim) return;
+    let timer: number;
+    if (anim.stepIndex < anim.path.length) {
+      const delay = anim.stepIndex === 0 ? PLACE_PAUSE : anim.stepDur;
+      timer = window.setTimeout(() => setAnim((a) => (a ? { ...a, stepIndex: a.stepIndex + 1 } : a)), delay);
+    } else if (anim.phase === "sliding") {
+      timer = window.setTimeout(() => setAnim((a) => (a ? { ...a, phase: "consume" } : a)), anim.stepDur);
+    } else {
+      timer = window.setTimeout(() => {
+        setState(anim.toState);
+        setTurnIndex((i) => i + 1);
+        setAnim(null);
+      }, CONSUME_MS);
+    }
+    return () => window.clearTimeout(timer);
+  }, [anim]);
 
   return (
     <main className="app">
@@ -31,13 +98,13 @@ export function App() {
 
       <section className="stage">
         <div className="board-wrap">
-          <Board state={state} onPlace={place} />
+          <Board state={state} anim={anim} onPlace={place} />
           {state.status === "choosing" && <HeadingChooser onChoose={choose} />}
-          {state.status === "over" && <GameOver state={state} onNewGame={newGame} />}
+          {state.status === "over" && !anim && <GameOver state={state} onNewGame={newGame} />}
         </div>
 
         <aside className="side">
-          {state.heading != null && <Preview state={state} />}
+          {state.heading != null && <Preview state={state} turnIndex={turnIndex} />}
           <Rules />
         </aside>
       </section>
@@ -112,32 +179,76 @@ function GameOver({ state, onNewGame }: { state: GameState; onNewGame: () => voi
   );
 }
 
-function Preview({ state }: { state: GameState }) {
+interface ArrowItem {
+  id: number;
+  glyph: string;
+  turn: Turn;
+}
+
+function Preview({ state, turnIndex }: { state: GameState; turnIndex: number }) {
   const heading = state.heading as Dir;
   const { current, next } = previewGlyphs(heading, state.arrows);
+  const items: ArrowItem[] = [
+    { id: turnIndex, glyph: current, turn: state.arrows[0] },
+    { id: turnIndex + 1, glyph: next, turn: state.arrows[1] },
+  ];
   return (
     <div className="preview">
       <h3>Arrows</h3>
-      <div className="arrows">
-        <div className="arrow current">
-          <span className="arrow-glyph">{current}</span>
-          <span className="arrow-meta">
-            <span className="arrow-tag">now</span>
-            <span className="arrow-turn">{turnLabel(state.arrows[0])}</span>
-          </span>
-        </div>
-        <div className="arrow next">
-          <span className="arrow-glyph">{next}</span>
-          <span className="arrow-meta">
-            <span className="arrow-tag">next</span>
-            <span className="arrow-turn">{turnLabel(state.arrows[1])}</span>
-          </span>
-        </div>
-      </div>
+      <PreviewQueue items={items} />
       <p className="preview-hint">
         Click a highlighted cell ahead to place the <em>now</em> arrow — the token slides
         there, then turns.
       </p>
+    </div>
+  );
+}
+
+type QueuedArrow = ArrowItem & { slot: number; leaving: boolean };
+
+/** Animates the two-arrow preview: on each move the "now" arrow slides out (consumed),
+ * "next" slides into the "now" slot, and a freshly dealt arrow fades in. */
+function PreviewQueue({ items }: { items: ArrowItem[] }) {
+  const [shown, setShown] = useState<QueuedArrow[]>(() =>
+    items.map((it, i) => ({ ...it, slot: i, leaving: false })),
+  );
+  const lastIds = useRef(items.map((i) => i.id).join(","));
+
+  useEffect(() => {
+    const ids = items.map((i) => i.id).join(",");
+    if (ids === lastIds.current) return;
+    lastIds.current = ids;
+    const present = new Set(items.map((i) => i.id));
+    setShown((curr) => {
+      const leaving = curr
+        .filter((c) => !present.has(c.id) && !c.leaving)
+        .map((c) => ({ ...c, slot: -1, leaving: true }));
+      const stillLeaving = curr.filter((c) => c.leaving && !present.has(c.id));
+      const incoming = items.map((it, i) => ({ ...it, slot: i, leaving: false }));
+      return [...stillLeaving, ...leaving, ...incoming];
+    });
+  }, [items]);
+
+  const prune = (id: number) =>
+    setShown((curr) => curr.filter((c) => !(c.leaving && c.id === id)));
+
+  return (
+    <div className="pv-track">
+      {shown.map((it) => (
+        <div
+          key={it.id}
+          className={`pv-card${it.slot === 0 ? " now" : ""}${it.leaving ? " out" : ""}`}
+          style={{ "--slot": it.slot } as CSSProperties}
+          onTransitionEnd={it.leaving ? () => prune(it.id) : undefined}
+          aria-hidden={it.leaving}
+        >
+          <span className="pv-glyph">{it.glyph}</span>
+          <span className="pv-meta">
+            <span className="pv-tag">{it.slot === 0 ? "now" : it.slot === 1 ? "next" : ""}</span>
+            <span className="pv-turn">{turnLabel(it.turn)}</span>
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
