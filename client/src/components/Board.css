@@ -1,0 +1,89 @@
+.board {
+  display: grid;
+  gap: 2px;
+  width: min(82vmin, 560px);
+  aspect-ratio: 1 / 1;
+  padding: 6px;
+  background: var(--grid-line);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
+.cell {
+  all: unset;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  background: var(--cell);
+  border-radius: 3px;
+  font-size: clamp(0.5rem, 2.1vmin, 1rem);
+  line-height: 1;
+  color: var(--text);
+  cursor: default;
+  user-select: none;
+}
+
+.cell.trail {
+  background: var(--trail);
+}
+
+.cell.token {
+  background: var(--token);
+  color: #0b0e14;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.35);
+}
+
+.cell .glyph {
+  font-size: clamp(0.7rem, 2.6vmin, 1.2rem);
+}
+
+.cell.num .value {
+  font-weight: 700;
+}
+
+.cell.num-1 .value {
+  color: var(--num-1);
+}
+.cell.num-2 .value {
+  color: var(--num-2);
+}
+.cell.num-3 .value {
+  color: var(--num-3);
+}
+
+/* Legal arrow placements along the heading line. */
+.cell.place {
+  background: color-mix(in srgb, var(--place) 28%, var(--cell));
+  outline: 1px solid color-mix(in srgb, var(--place) 70%, transparent);
+  cursor: pointer;
+}
+
+.cell.place .dist {
+  color: color-mix(in srgb, var(--place) 60%, var(--text));
+  opacity: 0.55;
+}
+
+.cell.place:hover {
+  background: color-mix(in srgb, var(--place) 55%, var(--cell));
+}
+
+/* A placement reached by wrapping across an edge — dashed to signal the jump. */
+.cell.place-wrap {
+  background: color-mix(in srgb, var(--place-wrap) 26%, var(--cell));
+  outline: 1px dashed color-mix(in srgb, var(--place-wrap) 80%, transparent);
+}
+
+.cell.place-wrap .dist {
+  color: color-mix(in srgb, var(--place-wrap) 70%, var(--text));
+}
+
+.cell.place-wrap:hover {
+  background: color-mix(in srgb, var(--place-wrap) 50%, var(--cell));
+}
+
+/* A placement cell that also holds a number: keep the value readable. */
+.cell.place.num .value,
+.cell.place-wrap.num .value {
+  opacity: 1;
+}

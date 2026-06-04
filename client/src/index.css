@@ -1,0 +1,62 @@
+:root {
+  --bg: #0b0e14;
+  --panel: #121723;
+  --grid-line: #1e2533;
+  --cell: #0f1420;
+  --cell-free: #131a28;
+  --trail: #2a3550;
+  --token: #6ea8fe;
+  --num-1: #5a6680;
+  --num-2: #d6a94b;
+  --num-3: #e5594f;
+  --place: #2f7d5b;
+  --place-wrap: #8a5a2b;
+  --text: #e6ebf2;
+  --muted: #8a93a6;
+  --accent: #6ea8fe;
+
+  color-scheme: dark;
+  font-family: "JetBrains Mono", "SF Mono", ui-monospace, "Cascadia Code", Menlo,
+    Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: radial-gradient(1200px 800px at 50% -10%, #141b2b 0%, var(--bg) 60%);
+  color: var(--text);
+}
+
+button {
+  font: inherit;
+  color: var(--text);
+  background: #1a2233;
+  border: 1px solid #2a3550;
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, transform 0.06s ease;
+}
+
+button:hover:not(:disabled) {
+  background: #232e45;
+  border-color: var(--accent);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

@@ -1,0 +1,265 @@
+.app {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2.5vw, 1.75rem);
+}
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.title h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+  letter-spacing: 0.04em;
+}
+
+.subtitle {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* HUD */
+.hud {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 3.5rem;
+}
+
+.stat-value {
+  font-size: clamp(1.1rem, 3.2vw, 1.6rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat.primary .stat-value {
+  color: var(--accent);
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hud-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.seed {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+/* Stage */
+.stage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(1rem, 3vw, 2rem);
+  align-items: flex-start;
+}
+
+.board-wrap {
+  position: relative;
+}
+
+.side {
+  flex: 1 1 220px;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Overlays (heading chooser + game over) */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(8, 11, 18, 0.72);
+  backdrop-filter: blur(2px);
+  border-radius: 12px;
+}
+
+.overlay-card {
+  text-align: center;
+  padding: 1.5rem 1.75rem;
+  background: var(--panel);
+  border: 1px solid #2a3550;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.overlay-card h2 {
+  margin: 0 0 1rem;
+  font-size: 1.2rem;
+}
+
+.final {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.final strong {
+  color: var(--accent);
+  font-size: 1.5rem;
+}
+
+.final-detail {
+  margin: 0.25rem 0 1.1rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Directional pad */
+.dpad {
+  position: relative;
+  width: 9rem;
+  height: 9rem;
+  margin: 0 auto;
+}
+
+.dpad-btn {
+  position: absolute;
+  width: 2.8rem;
+  height: 2.8rem;
+  display: grid;
+  place-items: center;
+  font-size: 1.3rem;
+}
+
+.dpad-btn.n {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.dpad-btn.s {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.dpad-btn.w {
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.dpad-btn.e {
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.dpad-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--muted);
+}
+
+/* Arrow preview */
+.preview h3,
+.rules summary {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.arrows {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.arrow {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  background: var(--panel);
+  border: 1px solid #2a3550;
+  border-radius: 10px;
+}
+
+.arrow.current {
+  border-color: var(--accent);
+}
+
+.arrow-glyph {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.arrow.current .arrow-glyph {
+  color: var(--accent);
+}
+
+.arrow-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.arrow-tag {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.arrow-turn {
+  font-size: 0.9rem;
+}
+
+.preview-hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+/* Rules */
+.rules {
+  background: var(--panel);
+  border: 1px solid #2a3550;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+
+.rules summary {
+  cursor: pointer;
+  margin: 0;
+}
+
+.rules ul {
+  margin: 0.75rem 0 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.4;
+}
