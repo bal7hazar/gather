@@ -1,12 +1,23 @@
 .board {
-  display: grid;
-  gap: 2px;
   width: min(82vmin, 560px);
-  aspect-ratio: 1 / 1;
   padding: 6px;
   background: var(--grid-line);
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* Gap-free grid: separators are cell borders, so each track is exactly 1/n of the
+   field. That lets the overlay token translate by whole-cell percentages. */
+.field {
+  position: relative;
+  display: grid;
+  gap: 0;
+  aspect-ratio: 1 / 1;
+  background: var(--cell);
+  border-top: 1px solid var(--grid-line);
+  border-left: 1px solid var(--grid-line);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .cell {
@@ -15,7 +26,8 @@
   place-items: center;
   aspect-ratio: 1 / 1;
   background: var(--cell);
-  border-radius: 3px;
+  border-right: 1px solid var(--grid-line);
+  border-bottom: 1px solid var(--grid-line);
   font-size: clamp(0.5rem, 2.1vmin, 1rem);
   line-height: 1;
   color: var(--text);
@@ -25,17 +37,6 @@
 
 .cell.trail {
   background: var(--trail);
-}
-
-.cell.token {
-  background: var(--token);
-  color: #0b0e14;
-  font-weight: 700;
-  box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.35);
-}
-
-.cell .glyph {
-  font-size: clamp(0.7rem, 2.6vmin, 1.2rem);
 }
 
 .cell.num .value {
@@ -56,6 +57,7 @@
 .cell.place {
   background: color-mix(in srgb, var(--place) 28%, var(--cell));
   outline: 1px solid color-mix(in srgb, var(--place) 70%, transparent);
+  outline-offset: -1px;
   cursor: pointer;
 }
 
@@ -72,6 +74,7 @@
 .cell.place-wrap {
   background: color-mix(in srgb, var(--place-wrap) 26%, var(--cell));
   outline: 1px dashed color-mix(in srgb, var(--place-wrap) 80%, transparent);
+  outline-offset: -1px;
 }
 
 .cell.place-wrap .dist {
@@ -82,8 +85,100 @@
   background: color-mix(in srgb, var(--place-wrap) 50%, var(--cell));
 }
 
-/* A placement cell that also holds a number: keep the value readable. */
-.cell.place.num .value,
-.cell.place-wrap.num .value {
-  opacity: 1;
+/* ---- Animation overlay ---- */
+
+.overlay-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ov {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(100% / var(--n));
+  height: calc(100% / var(--n));
+  display: grid;
+  place-items: center;
+  will-change: transform;
+}
+
+/* Trail laid down as the token passes, fading in cell by cell. */
+.ov-trail {
+  background: var(--trail);
+  border-radius: 2px;
+  z-index: 1;
+  animation: ov-trail-in 130ms ease-out;
+}
+
+@keyframes ov-trail-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* The placed arrow the token is sliding toward; it "consumes" on arrival. */
+.ov-arrow {
+  z-index: 2;
+}
+
+.ov-arrow-glyph {
+  font-size: clamp(0.8rem, 3.2vmin, 1.5rem);
+  color: var(--accent);
+  opacity: 0.9;
+  text-shadow: 0 0 8px rgba(110, 168, 254, 0.55);
+  transition: transform 200ms ease, opacity 200ms ease;
+}
+
+.ov-arrow-glyph.consumed {
+  transform: scale(2.1);
+  opacity: 0;
+}
+
+/* "+n" pop when the token sweeps up a number. */
+.ov-pop {
+  z-index: 5;
+}
+
+.ov-pop-text {
+  font-weight: 700;
+  font-size: clamp(0.55rem, 2.3vmin, 1rem);
+  color: var(--num-3);
+  animation: ov-pop 520ms ease-out forwards;
+}
+
+@keyframes ov-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-90%) scale(1.1);
+  }
+}
+
+/* The moving token. Position transitions per hop (set inline); wrap hops jump. */
+.ov-token {
+  z-index: 4;
+}
+
+.ov-token .ov-glyph {
+  display: grid;
+  place-items: center;
+  width: 86%;
+  height: 86%;
+  background: var(--token);
+  color: #0b0e14;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: clamp(0.7rem, 2.7vmin, 1.2rem);
+  box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.4), 0 2px 8px rgba(0, 0, 0, 0.4);
 }
