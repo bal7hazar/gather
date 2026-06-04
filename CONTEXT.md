@@ -57,9 +57,9 @@ There is **no win state**: endless survival until self-collision.
 
 ## 5. Scoring
 
-- **Score = (sum of collected number values) − (number of cells the token has traveled).**
-- Each traveled cell costs 1; each pickup adds its value. So a `1` landed on costs 1 step to gain 1 → **break-even**; a `2` nets +1, a `3` nets +2; empty steps are −1.
-- This is intentional: it creates the **"skip the low numbers"** decision — efficient routing onto 2s/3s beats greedily sweeping every 1. The core skill is **value-per-distance routing while not trapping yourself**.
+- **Score = sum of collected number values.** Cells traveled are **not** deducted (the step count is tracked for info only).
+- Every pickup is pure upside: a `1` adds 1, a `2` adds 2, a `3` adds 3; empty steps are free. There is no "break-even" penalty for routing through low numbers.
+- The core skill is **surviving as long as possible while sweeping up numbers** without trapping yourself in your own trail. (The earlier value-per-distance "skip the low numbers" framing was dropped — see decision in Section 7.)
 - The run ends at self-collision; the final score is the running total at that point. Higher is better. (Later: a run "wins" if it beats the average — not implemented here.)
 
 ## 6. Concrete v1 parameters (difficulty / tuning knobs — set by playtest)
@@ -71,7 +71,7 @@ There is **no win state**: endless survival until self-collision.
 | Value distribution | 4:2:1 → P(1,2,3)=4/7,2/7,1/7 | richer = higher ceiling |
 | Arrow directions dealt | {straight, left, right} (no 180°) | excluding "straight" too would force constant turns = harder |
 | Preview | 2 arrows (current + next) | longer preview = easier but **leaks future to the bot** — keep short |
-| Step cost in score | 1 per cell | higher = punishes wandering more |
+| Step cost in score | none (score = collected values only) | re-add a per-cell cost to punish wandering |
 
 ## 7. Rules decisions & open questions
 
@@ -81,13 +81,13 @@ There is **no win state**: endless survival until self-collision.
 - **2-move preview** (current + next).
 - **Slide-until-arrow** movement: the token advances along its heading until the placed arrow, then turns.
 - **Numbers respawn** indefinitely (no fixed pool); self-collision, not number exhaustion, ends the game.
+- **Score = collected values only** (no step deduction). Cells traveled are tracked but do not subtract from the score.
 
 ### Open (confirm)
-1. **Step cost basis:** score subtracts **cells traveled** (assumed). Alternative: subtract **turns/arrows placed** (makes long sweeps cheap). Confirm cells-traveled.
-2. **Dealt direction set:** assumed `{straight, left, right}`. Alternative: only `{left, right}` (a turn is mandatory every move → tighter, harder). Confirm.
-3. **Value distribution** exact weights (4:2:1 assumed) and whether it should drift over a run.
-4. **Initial heading:** assumed player-chosen at start; could be fixed/random.
-5. **Spawn rule:** new numbers appear only on free (unused, unoccupied) cells, uniformly. Confirm; consider avoiding spawning right in the token's immediate path.
+1. **Dealt direction set:** assumed `{straight, left, right}`. Alternative: only `{left, right}` (a turn is mandatory every move → tighter, harder). Confirm.
+2. **Value distribution** exact weights (4:2:1 assumed) and whether it should drift over a run.
+3. **Initial heading:** assumed player-chosen at start; could be fixed/random.
+4. **Spawn rule:** new numbers appear only on free (unused, unoccupied) cells, uniformly. Confirm; consider avoiding spawning right in the token's immediate path.
 
 ## 8. Tech direction (proposed — confirm)
 

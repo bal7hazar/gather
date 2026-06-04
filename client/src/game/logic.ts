@@ -195,7 +195,7 @@ export function placeArrow(state: GameState, distance: number): GameState {
 
   const dealt = dealTurn(s.rng);
   s = { ...s, rng: dealt.state, arrows: [s.arrows[1], dealt.turn] };
-  s.score = s.collected - s.steps;
+  s.score = s.collected;
 
   if (clearRun(s).length === 0) s.status = "over";
   return s;
