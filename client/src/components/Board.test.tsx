@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { clearRun, createGame, setHeading } from "../game";
+import { clearRun, createGame } from "../game";
 import type { MoveAnim } from "../anim";
 import { Board } from "./Board";
 
@@ -8,14 +8,14 @@ const noop = () => {};
 
 describe("Board", () => {
   it("renders the idle board with the token at its heading", () => {
-    const state = setHeading(createGame(1), 1); // heading East
+    const state = createGame(1, 1); // heading East
     const html = renderToStaticMarkup(<Board state={state} anim={null} onPlace={noop} />);
     expect(html).toContain("ov-token");
     expect(html).toContain("→"); // East glyph
   });
 
   it("renders the move overlay: trail behind the token and the placed arrow", () => {
-    const state = setHeading(createGame(1), 1);
+    const state = createGame(1, 1);
     const path = clearRun(state).slice(0, 3);
     const anim: MoveAnim = {
       path,

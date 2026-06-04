@@ -34,7 +34,7 @@ Filter profile (honest):
 ## 3. Core mechanic
 
 - **Grid:** **15×15** with **wrap-around (torus)**: there are no walls. A token leaving the top re-enters the bottom on the same column with the same heading; likewise left/right. Exiting one side = entering the opposite side.
-- **Token:** starts at the **center** cell, score 0, with an initial **heading** chosen by the player.
+- **Token:** starts at the **center** cell, score 0, with a **fixed initial heading (North)**.
 - **Trail:** every cell the token enters becomes **used** (blocked) forever. The token may **never enter a used cell** — doing so (or being unable to make any legal move) ends the game. This self-collision is the **only** loss condition (the torus removes wall deaths).
 - **Numbers (pickups):** **5** are visible at any time, on free (unused, unoccupied) cells. Collecting one (the token enters its cell) immediately **spawns a new one** on a random free cell. Values follow a weighted distribution preserving the original 20:10:5 ratio → **P(1)=4/7, P(2)=2/7, P(3)=1/7** (v1, tunable).
 - **Arrows (the dealt resource):** each turn the RNG deals a **turn-direction** for an arrow. Allowed directions = the current heading's **straight, left, or right** — the **180° reversal is forbidden**. The player places this arrow on a free cell ahead of the token (see Turn structure).
@@ -42,7 +42,7 @@ Filter profile (honest):
 
 ## 4. Turn structure
 
-Start: token at center, score 0, player picks an initial heading. 5 numbers are seeded. The first 2 arrows are revealed.
+Start: token at center, score 0, heading fixed to North. 5 numbers are seeded. The first 2 arrows are revealed.
 
 Each turn:
 1. The current arrow's forced direction `D` is known (and the next one is previewed).
@@ -82,12 +82,12 @@ There is **no win state**: endless survival until self-collision.
 - **Slide-until-arrow** movement: the token advances along its heading until the placed arrow, then turns.
 - **Numbers respawn** indefinitely (no fixed pool); self-collision, not number exhaustion, ends the game.
 - **Score = collected values only** (no step deduction). Cells traveled are tracked but do not subtract from the score.
+- **Initial heading is fixed to North** (no start-of-run heading choice).
 
 ### Open (confirm)
 1. **Dealt direction set:** assumed `{straight, left, right}`. Alternative: only `{left, right}` (a turn is mandatory every move → tighter, harder). Confirm.
 2. **Value distribution** exact weights (4:2:1 assumed) and whether it should drift over a run.
-3. **Initial heading:** assumed player-chosen at start; could be fixed/random.
-4. **Spawn rule:** new numbers appear only on free (unused, unoccupied) cells, uniformly. Confirm; consider avoiding spawning right in the token's immediate path.
+3. **Spawn rule:** new numbers appear only on free (unused, unoccupied) cells, uniformly. Confirm; consider avoiding spawning right in the token's immediate path.
 
 ## 8. Tech direction (proposed — confirm)
 

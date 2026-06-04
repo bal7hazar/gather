@@ -27,14 +27,14 @@ export interface Cell {
   wrapped: boolean;
 }
 
-export type Status = "choosing" | "playing" | "over";
+export type Status = "playing" | "over";
 
 export interface GameState {
   width: number;
   height: number;
   token: { x: number; y: number };
-  /** null only while status === "choosing" (player picks the initial heading). */
-  heading: Dir | null;
+  /** Absolute heading the token is currently moving along. */
+  heading: Dir;
   /** Flat width*height grid of trail cells. used[y*width + x] === true ⇒ blocked. */
   used: boolean[];
   numbers: NumberTile[];

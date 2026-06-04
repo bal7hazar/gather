@@ -19,6 +19,8 @@ import { rngFloat, rngInt, seedRng, type RngState } from "./rng";
 export const WIDTH = 15;
 export const HEIGHT = 15;
 export const VISIBLE_NUMBERS = 5;
+/** The token always starts heading North (0). */
+export const START_HEADING: Dir = 0;
 
 const DIR_VECTORS: Record<Dir, { x: number; y: number }> = {
   0: { x: 0, y: -1 },
@@ -98,7 +100,6 @@ function spawnNumber(state: GameState): GameState {
  * `distance` is how far the token would slide to turn there.
  */
 export function clearRun(state: GameState): Cell[] {
-  if (state.heading == null) return [];
   const cells: Cell[] = [];
   let { x, y } = state.token;
   let wrapped = false;
@@ -119,8 +120,11 @@ export function clearRun(state: GameState): Cell[] {
   return cells;
 }
 
-/** Create a fresh game: token at center, 5 numbers seeded, 2 arrows previewed. */
-export function createGame(seed: number): GameState {
+/**
+ * Create a fresh game ready to play: token at center heading North (overridable for
+ * tests), 5 numbers seeded, 2 arrows previewed.
+ */
+export function createGame(seed: number, heading: Dir = START_HEADING): GameState {
   const used = new Array<boolean>(WIDTH * HEIGHT).fill(false);
   const cx = Math.floor(WIDTH / 2);
   const cy = Math.floor(HEIGHT / 2);
@@ -130,7 +134,7 @@ export function createGame(seed: number): GameState {
     width: WIDTH,
     height: HEIGHT,
     token: { x: cx, y: cy },
-    heading: null,
+    heading,
     used,
     numbers: [],
     arrows: [],
@@ -139,7 +143,7 @@ export function createGame(seed: number): GameState {
     collected: 0,
     rng: seedRng(seed),
     nextNumberId: 0,
-    status: "choosing",
+    status: "playing",
     seed,
   };
 
@@ -150,12 +154,6 @@ export function createGame(seed: number): GameState {
   return { ...state, rng: a1.state, arrows: [a0.turn, a1.turn] };
 }
 
-/** Lock in the player's initial heading and begin play. */
-export function setHeading(state: GameState, heading: Dir): GameState {
-  if (state.status !== "choosing") return state;
-  return { ...state, heading, status: "playing" };
-}
-
 /**
  * Place the current arrow `distance` cells ahead and resolve the turn: slide the
  * token there (marking trail, collecting + respawning numbers), turn to the dealt
@@ -164,7 +162,7 @@ export function setHeading(state: GameState, heading: Dir): GameState {
  * the game ends.
  */
 export function placeArrow(state: GameState, distance: number): GameState {
-  if (state.status !== "playing" || state.heading == null) return state;
+  if (state.status !== "playing") return state;
   const run = clearRun(state);
   if (distance < 1 || distance > run.length) return state;
 
@@ -176,7 +174,7 @@ export function placeArrow(state: GameState, distance: number): GameState {
   let { x, y } = s.token;
 
   for (let d = 1; d <= distance; d++) {
-    const next = step(x, y, s.heading as Dir);
+    const next = step(x, y, s.heading);
     x = next.x;
     y = next.y;
     s.used[idx(x, y)] = true;
@@ -191,7 +189,7 @@ export function placeArrow(state: GameState, distance: number): GameState {
   }
 
   s.token = { x, y };
-  s.heading = turnDir(s.heading as Dir, s.arrows[0]);
+  s.heading = turnDir(s.heading, s.arrows[0]);
 
   const dealt = dealTurn(s.rng);
   s = { ...s, rng: dealt.state, arrows: [s.arrows[1], dealt.turn] };

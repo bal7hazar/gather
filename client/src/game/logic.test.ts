@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   HEIGHT,
+  START_HEADING,
   VISIBLE_NUMBERS,
   WIDTH,
   clearRun,
   createGame,
   idx,
   placeArrow,
-  setHeading,
   step,
   turnDir,
 } from "./logic";
@@ -31,14 +31,18 @@ describe("geometry", () => {
 });
 
 describe("createGame", () => {
-  it("starts at center, choosing, with 5 numbers and 2 arrows", () => {
+  it("starts at center, playing, heading North, with 5 numbers and 2 arrows", () => {
     const g = createGame(123);
-    expect(g.status).toBe("choosing");
+    expect(g.status).toBe("playing");
     expect(g.token).toEqual({ x: Math.floor(WIDTH / 2), y: Math.floor(HEIGHT / 2) });
-    expect(g.heading).toBeNull();
+    expect(g.heading).toBe(START_HEADING);
     expect(g.numbers).toHaveLength(VISIBLE_NUMBERS);
     expect(g.arrows).toHaveLength(2);
     expect(g.used[idx(g.token.x, g.token.y)]).toBe(true);
+  });
+
+  it("accepts an explicit starting heading", () => {
+    expect(createGame(123, 1).heading).toBe(1);
   });
 
   it("is fully reproducible from its seed", () => {
@@ -58,18 +62,9 @@ describe("createGame", () => {
   });
 });
 
-describe("setHeading", () => {
-  it("begins play and only works while choosing", () => {
-    const g = setHeading(createGame(1), 1);
-    expect(g.status).toBe("playing");
-    expect(g.heading).toBe(1);
-    expect(setHeading(g, 2).heading).toBe(1); // ignored once playing
-  });
-});
-
 describe("clearRun", () => {
   it("highlights the contiguous unused cells ahead and flags wrap", () => {
-    const g = setHeading(createGame(1), 1); // heading East from center
+    const g = createGame(1, 1); // heading East from center
     const run = clearRun(g);
     expect(run.length).toBeGreaterThan(0);
     expect(run[0].distance).toBe(1);
@@ -80,7 +75,7 @@ describe("clearRun", () => {
   });
 
   it("stops before a trail cell", () => {
-    const g = setHeading(createGame(1), 1);
+    const g = createGame(1, 1);
     const blocked: GameState = { ...g, used: g.used.slice() };
     const cx = g.token.x;
     const cy = g.token.y;
@@ -93,7 +88,7 @@ describe("clearRun", () => {
 
 describe("placeArrow", () => {
   it("slides the token, lays trail, tracks steps, and turns", () => {
-    const g = setHeading(createGame(1), 1);
+    const g = createGame(1, 1);
     const before = g.token.x;
     const moved = placeArrow(g, 3);
     expect(moved.token).toEqual({ x: before + 3, y: g.token.y });
@@ -109,13 +104,13 @@ describe("placeArrow", () => {
   });
 
   it("ignores illegal distances", () => {
-    const g = setHeading(createGame(1), 1);
+    const g = createGame(1, 1);
     expect(placeArrow(g, 0)).toBe(g);
     expect(placeArrow(g, clearRun(g).length + 1)).toBe(g);
   });
 
   it("keeps exactly 5 numbers visible across collections", () => {
-    let g = setHeading(createGame(13), 1);
+    let g = createGame(13, 1);
     for (let t = 0; t < 30 && g.status === "playing"; t++) {
       const run = clearRun(g);
       g = placeArrow(g, run[Math.min(2, run.length - 1)].distance);
@@ -125,7 +120,7 @@ describe("placeArrow", () => {
 
   it("collects a number on the path: +value, respawn, score = collected", () => {
     // Heading East from center; drop a single known number two cells ahead.
-    const base = setHeading(createGame(2), 1);
+    const base = createGame(2, 1);
     const cx = base.token.x;
     const cy = base.token.y;
     const g: GameState = {
@@ -173,7 +168,7 @@ describe("placeArrow", () => {
 
   it("approximates the 4:2:1 value distribution over many spawns", () => {
     const counts = { 1: 0, 2: 0, 3: 0 };
-    let g = setHeading(createGame(31), 1);
+    let g = createGame(31, 1);
     let spawns = 0;
     for (let t = 0; t < 400 && g.status === "playing"; t++) {
       const before = g.collected;

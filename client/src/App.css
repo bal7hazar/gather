@@ -132,52 +132,6 @@
   font-size: 0.85rem;
 }
 
-/* Directional pad */
-.dpad {
-  position: relative;
-  width: 9rem;
-  height: 9rem;
-  margin: 0 auto;
-}
-
-.dpad-btn {
-  position: absolute;
-  width: 2.8rem;
-  height: 2.8rem;
-  display: grid;
-  place-items: center;
-  font-size: 1.3rem;
-}
-
-.dpad-btn.n {
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-}
-.dpad-btn.s {
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-}
-.dpad-btn.w {
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
-.dpad-btn.e {
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.dpad-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: var(--muted);
-}
-
 /* Arrow preview */
 .preview h3,
 .rules summary {
