@@ -92,7 +92,7 @@ describe("clearRun", () => {
 });
 
 describe("placeArrow", () => {
-  it("slides the token, lays trail, costs one per cell, and turns", () => {
+  it("slides the token, lays trail, tracks steps, and turns", () => {
     const g = setHeading(createGame(1), 1);
     const before = g.token.x;
     const moved = placeArrow(g, 3);
@@ -104,7 +104,8 @@ describe("placeArrow", () => {
     expect(moved.heading).toBe(turnDir(1, g.arrows[0]));
     expect(moved.arrows).toHaveLength(2);
     expect(moved.arrows[0]).toBe(g.arrows[1]);
-    expect(moved.score).toBe(moved.collected - moved.steps);
+    // Score is the collected sum only — steps are not deducted.
+    expect(moved.score).toBe(moved.collected);
   });
 
   it("ignores illegal distances", () => {
@@ -122,7 +123,7 @@ describe("placeArrow", () => {
     }
   });
 
-  it("collects a number on the path: +value, respawn, score nets correctly", () => {
+  it("collects a number on the path: +value, respawn, score = collected", () => {
     // Heading East from center; drop a single known number two cells ahead.
     const base = setHeading(createGame(2), 1);
     const cx = base.token.x;
@@ -134,7 +135,7 @@ describe("placeArrow", () => {
     const moved = placeArrow(g, 2);
     expect(moved.collected).toBe(3);
     expect(moved.steps).toBe(2);
-    expect(moved.score).toBe(1); // +3 value − 2 steps
+    expect(moved.score).toBe(3); // collected value only; steps not deducted
     expect(moved.numbers.length).toBe(1); // collected one, respawned one
     expect(moved.numbers.some((n) => n.id === 999)).toBe(false);
   });

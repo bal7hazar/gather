@@ -40,10 +40,11 @@ export interface GameState {
   numbers: NumberTile[];
   /** [current, next] dealt arrows shown to the player (the 2-move preview). */
   arrows: Turn[];
+  /** Sum of collected number values (no step deduction). */
   score: number;
-  /** Total cells traveled (the step cost). */
+  /** Total cells traveled (tracked for info; does not affect the score). */
   steps: number;
-  /** Running sum of collected number values. */
+  /** Running sum of collected number values (equals score). */
   collected: number;
   /** Seedable RNG state (mulberry32). */
   rng: number;

@@ -49,7 +49,6 @@ function Hud({ state, onNewGame }: { state: GameState; onNewGame: () => void }) 
   return (
     <div className="hud">
       <Stat label="score" value={state.score} primary />
-      <Stat label="collected" value={state.collected} />
       <Stat label="steps" value={state.steps} />
       <div className="hud-actions">
         <span className="seed">seed {state.seed}</span>
@@ -103,7 +102,7 @@ function GameOver({ state, onNewGame }: { state: GameState; onNewGame: () => voi
           final score <strong>{state.score}</strong>
         </p>
         <p className="final-detail">
-          {state.collected} collected − {state.steps} steps
+          {state.collected} gathered over {state.steps} steps
         </p>
         <button type="button" onClick={onNewGame}>
           New game
@@ -151,9 +150,7 @@ function Rules() {
         <li>The grid wraps: leaving one edge re-enters the opposite side.</li>
         <li>Every cell you enter becomes trail you can never re-cross.</li>
         <li>Each turn you&apos;re dealt a forced turn — you choose how far ahead to place it.</li>
-        <li>
-          Numbers add their value; each step costs 1. Skip the 1s, route onto 2s and 3s.
-        </li>
+        <li>Each number adds its value to your score — gather as many as you can.</li>
         <li>Dashed cells are reachable only by wrapping across an edge.</li>
         <li>You lose when you trap yourself with no free cell ahead.</li>
       </ul>
